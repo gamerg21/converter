@@ -6,7 +6,7 @@ export const createJobSchema = z
     sourceFormat: z.string().min(2),
     targetFormat: z.string().min(2),
     fileAssetId: z.string().uuid(),
-    options: z.record(z.any()).default({})
+    options: z.record(z.string(), z.any()).default({})
   })
   .superRefine((data, ctx) => {
     if (!canConvertPair(data.sourceFormat, data.targetFormat)) {

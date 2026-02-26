@@ -18,5 +18,14 @@ export const defaultPlanQuotas: PlanQuota[] = [
   }
 ];
 
-export const findPlanQuota = (code: PlanCode): PlanQuota =>
-  defaultPlanQuotas.find((plan) => plan.code === code) ?? defaultPlanQuotas[0];
+export const findPlanQuota = (code: PlanCode): PlanQuota => {
+  const plan = defaultPlanQuotas.find((entry) => entry.code === code);
+  const fallbackPlan =
+    defaultPlanQuotas.find((entry) => entry.code === "free") ?? defaultPlanQuotas[0];
+
+  if (!fallbackPlan) {
+    throw new Error("No default plan quota configured.");
+  }
+
+  return plan ?? fallbackPlan;
+};
