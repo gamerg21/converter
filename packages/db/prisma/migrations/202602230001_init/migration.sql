@@ -1,0 +1,2 @@
+-- Initial schema migration generated for Convertr.
+-- Apply with: pnpm --filter @convertr/db prisma:migrate

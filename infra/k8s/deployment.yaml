@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: convertr-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: convertr-api
+  template:
+    metadata:
+      labels:
+        app: convertr-api
+    spec:
+      containers:
+        - name: api
+          image: convertr/api:latest
+          ports:
+            - containerPort: 4000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: convertr-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: convertr-worker
+  template:
+    metadata:
+      labels:
+        app: convertr-worker
+    spec:
+      containers:
+        - name: worker
+          image: convertr/worker:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: convertr-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: convertr-web
+  template:
+    metadata:
+      labels:
+        app: convertr-web
+    spec:
+      containers:
+        - name: web
+          image: convertr/web:latest
+          ports:
+            - containerPort: 3000

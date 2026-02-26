@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  FINISHED
+  FAILED
+  CANCELED
+}
+
+model User {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  passwordHash String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  memberships  OrganizationUser[]
+  apiKeys      ApiKey[]
+}
+
+model Organization {
+  id            String             @id @default(uuid())
+  name          String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  members       OrganizationUser[]
+  apiKeys       ApiKey[]
+  files         FileAsset[]
+  jobs          ConversionJob[]
+  webhooks      WebhookEndpoint[]
+  usageRecords  UsageRecord[]
+  subscription  PlanSubscription?
+}
+
+model OrganizationUser {
+  userId         String
+  organizationId String
+  role           OrgRole @default(MEMBER)
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+}
+
+model ApiKey {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  name           String
+  hashedKey      String
+  lastUsedAt     DateTime?
+  createdAt      DateTime @default(now())
+  revokedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FileAsset {
+  id             String   @id @default(uuid())
+  organizationId String
+  ownerUserId    String
+  filename       String
+  mimeType       String
+  sizeBytes      BigInt
+  format         String
+  storageKey     String   @unique
+  checksum       String?
+  createdAt      DateTime @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  jobsAsInput  ConversionJob[] @relation("InputFile")
+  jobsAsOutput ConversionJob[] @relation("OutputFile")
+}
+
+model ConversionJob {
+  id             String    @id @default(uuid())
+  organizationId String
+  inputFileId    String
+  outputFileId   String?
+  sourceFormat   String
+  targetFormat   String
+  status         JobStatus @default(QUEUED)
+  progress       Int       @default(0)
+  errorMessage   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  startedAt      DateTime?
+  completedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inputFile     FileAsset   @relation("InputFile", fields: [inputFileId], references: [id], onDelete: Cascade)
+  outputFile    FileAsset?  @relation("OutputFile", fields: [outputFileId], references: [id])
+  tasks         JobTask[]
+}
+
+model JobTask {
+  id         String   @id @default(uuid())
+  jobId      String
+  step       String
+  status     JobStatus @default(QUEUED)
+  log        String?
+  retryCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  job ConversionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model WebhookEndpoint {
+  id             String   @id @default(uuid())
+  organizationId String
+  url            String
+  secret         String
+  events         String[]
+  createdAt      DateTime @default(now())
+  disabledAt     DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model UsageRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  metric         String
+  value          BigInt
+  period         String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model PlanSubscription {
+  id                  String   @id @default(uuid())
+  organizationId      String   @unique
+  planCode            String
+  stripeCustomerId    String?
+  stripeSubscriptionId String?
+  status              String
+  renewsAt            DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}

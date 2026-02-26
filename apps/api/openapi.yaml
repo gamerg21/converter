@@ -1,0 +1,36 @@
+openapi: 3.1.0
+info:
+  title: Convertr API
+  version: 0.1.0
+servers:
+  - url: http://localhost:4000
+paths:
+  /v1/jobs:
+    get:
+      summary: List jobs
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Create conversion job
+      responses:
+        "201":
+          description: Created
+  /v1/files/presign:
+    post:
+      summary: Create file asset and upload URL
+      responses:
+        "201":
+          description: Created
+  /v1/api-keys:
+    post:
+      summary: Create API key
+      responses:
+        "201":
+          description: Created
+  /v1/webhooks:
+    post:
+      summary: Register webhook endpoint
+      responses:
+        "201":
+          description: Created
