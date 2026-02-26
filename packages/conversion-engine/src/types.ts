@@ -7,10 +7,16 @@ export type ConversionRequest = {
   options?: Record<string, unknown>;
 };
 
+export type ConversionErrorCode =
+  | "UNSUPPORTED_PAIR"
+  | "TOOLING_UNAVAILABLE"
+  | "CONVERSION_FAILED";
+
 export type ConversionResult = {
   success: boolean;
   outputPath?: string;
   error?: string;
+  errorCode?: ConversionErrorCode;
   metadata?: Record<string, unknown>;
 };
 
